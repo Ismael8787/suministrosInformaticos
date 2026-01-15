@@ -28,6 +28,7 @@ class Producto(Base):
     referencia = Column(String, unique=True)
     id_proveedor = Column(Integer, ForeignKey("proveedores.id"))
     ubicacion = Column(String)
+    imagen = Column(String)
 
 
 class Pedido(Base):
