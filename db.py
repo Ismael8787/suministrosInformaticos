@@ -8,3 +8,4 @@ engine = create_engine('sqlite:///database/suministros_informaticos.db',
 Session = sessionmaker(bind=engine)
 session= Session()
 Base= declarative_base()
+

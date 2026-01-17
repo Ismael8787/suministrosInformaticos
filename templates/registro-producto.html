@@ -3,152 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Producto - Circuit Box</title>
-
+    <title>{{ 'Detalle' if producto else 'Registro' }} de Producto - Circuit Box</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
-        body {
-            background: #f8f9fc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
+        body { background: #f8f9fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .login-card { width: 750px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+        .brand { font-weight: 700; font-size: 22px; display: flex; align-items: center; gap: 8px; margin-bottom: 25px; }
+        .brand img { width: 28px; }
+        .input-label { font-weight: 500; margin-bottom: 5px; font-size: 14px; }
+        .submit-btn { width: 100%; background: #2d6cdf; border: none; padding: 10px; color: white; border-radius: 6px; font-size: 16px; margin-top: 15px; transition: 0.3s; }
+        .submit-btn:hover { background: #1f54b8; }
 
-        .login-card {
-            width: 600px;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
+        .action-group { display: flex; gap: 10px; margin-top: 15px; }
+        .cart-btn { flex: 1; background: #6c757d; border: none; padding: 12px; color: white; border-radius: 6px; font-size: 16px; transition: 0.3s; }
+        .buy-btn { flex: 1; background: #28a745; border: none; padding: 12px; color: white; border-radius: 6px; font-size: 16px; transition: 0.3s; }
 
-        .brand {
-            font-weight: 700;
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 25px;
-        }
-
-        .brand img {
-            width: 28px;
-        }
-
-        .input-label {
-            font-weight: 500;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .submit-btn {
-            width: 100%;
-            background: #2d6cdf;
-            border: none;
-            padding: 10px;
-            color: white;
-            border-radius: 6px;
-            font-size: 16px;
-            margin-top: 15px;
-            transition: 0.3s;
-        }
-
-        .submit-btn:hover {
-            background: #1f54b8;
-        }
-
-        .bottom-text {
-            margin-top: 15px;
-            text-align: center;
-        }
+        input[readonly], textarea[readonly], select[disabled] { background-color: #f1f3f5 !important; border-color: #dee2e6; cursor: default; color: #495057; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-
         <div class="brand">
             <img src="https://img.icons8.com/ios-filled/50/000000/processor.png" alt="Logo">
             Circuit Box
         </div>
 
-        <h3 class="mb-4">Registrar Nuevo Producto</h3>
+        <h3 class="mb-4 text-primary">{{ 'Detalle del Producto' if producto else 'Registrar Nuevo Producto' }}</h3>
 
-        <form action="/registro-producto" method="POST" enctype="multipart/form-data">
+        <form action="/create-producto" method="POST" enctype="multipart/form-data">
             <div class="row">
+                {% if producto %}
+                <div class="col-12 text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/productos/' + producto.imagen) }}"
+                         class="img-thumbnail shadow-sm" style="height: 180px; object-fit: contain;">
+                </div>
+                {% endif %}
+
                 <div class="col-8">
                     <label class="input-label">Nombre del Producto</label>
-                    <input type="text" name="nombre" class="form-control mb-3" placeholder="Ej: Resistencia 10k" required>
+                    <input type="text" name="nombre" class="form-control mb-3"
+                           value="{{ producto.nombre if producto else '' }}"
+                           {{ 'readonly' if producto else '' }} required>
                 </div>
                 <div class="col-4">
                     <label class="input-label">Referencia (SKU)</label>
-                    <input type="text" name="referencia" class="form-control mb-3" placeholder="REF-001" required>
+                    <input type="text" name="referencia" class="form-control mb-3"
+                           value="{{ producto.referencia if producto else '' }}"
+                           {{ 'readonly' if producto else '' }} required>
                 </div>
 
                 <div class="col-12">
                     <label class="input-label">Descripción</label>
-                    <textarea name="descripcion" class="form-control mb-3" rows="2"></textarea>
+                    <textarea name="descripcion" class="form-control mb-3" rows="2"
+                              {{ 'readonly' if producto else '' }}>{{ producto.descripcion if producto else '' }}</textarea>
                 </div>
 
                 <div class="col-6">
                     <label class="input-label">Precio Compra</label>
                     <div class="input-group mb-3">
                         <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" name="precio_compra" class="form-control" required>
+                        <input type="number" step="0.01" name="precio_compra" class="form-control"
+                               value="{{ producto.precio_compra if producto else '' }}"
+                               {{ 'readonly' if producto else '' }} required>
                     </div>
                 </div>
                 <div class="col-6">
                     <label class="input-label">Precio Venta</label>
                     <div class="input-group mb-3">
                         <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" name="precio_venta" class="form-control" required>
+                        <input type="number" step="0.01" name="precio_venta" class="form-control"
+                               value="{{ producto.precio_venta if producto else '' }}"
+                               {{ 'readonly' if producto else '' }} required>
                     </div>
                 </div>
 
                 <div class="col-6">
                     <label class="input-label">Stock Actual</label>
-                    <input type="number" name="stock_actual" class="form-control mb-3" required>
+                    <input type="number" name="stock_actual" class="form-control mb-3"
+                           value="{{ producto.stock_actual if producto else '' }}"
+                           {{ 'readonly' if producto else '' }} required>
                 </div>
                 <div class="col-6">
                     <label class="input-label">Stock Mínimo</label>
-                    <input type="number" name="stock_minimo" class="form-control mb-3" required>
+                    <input type="number" name="stock_minimo" class="form-control mb-3"
+                           value="{{ producto.stock_minimo if producto else '' }}"
+                           {{ 'readonly' if producto else '' }} required>
                 </div>
 
                 <div class="col-6">
-                    <label class="input-label">Color / Variante</label>
-                    <input type="text" name="color" class="form-control mb-3">
+                    <label class="input-label">Ubicación</label>
+                    <input type="text" name="ubicacion" class="form-control mb-3"
+                           value="{{ producto.ubicacion if producto else '' }}"
+                           {{ 'readonly' if producto else '' }}>
                 </div>
-
                 <div class="col-6">
                     <label class="input-label">Proveedor</label>
-                    <select name="proveedor_id" class="form-select mb-3" required>
-                        <option value="" selected disabled>Selecciona un proveedor</option>
-                        {% for p in proveedores %}
-                            <option value="{{ p.id }}">{{ p.nombre }}</option>
-                        {% endfor %}
+                    <select name="proveedor_id" class="form-select mb-3" required {{ 'disabled' if producto else '' }}>
+                        {% if producto %}
+                            <option value="{{ proveedor_actual.id }}">{{ proveedor_actual.nombre }}</option>
+                        {% else %}
+                            <option value="" selected disabled>Selecciona un proveedor</option>
+                            {% for p in proveedores %}
+                                <option value="{{ p.id }}">{{ p.nombre }}</option>
+                            {% endfor %}
+                        {% endif %}
                     </select>
                 </div>
 
-                <div class="col-6">
-                    <label class="input-label">Ubicación (Almacén)</label>
-                    <input type="text" name="ubicacion" class="form-control mb-3" placeholder="Pasillo A-1">
-                </div>
-                <div class="col-6">
+                {% if not producto %}
+                <div class="col-12">
                     <label class="input-label">Imagen del Producto</label>
-                    <input type="file" name="imagen" class="form-control mb-3" accept="image/*">
+                    <input type="file" name="imagen" class="form-control mb-3" accept="image/*" required>
                 </div>
+                {% endif %}
             </div>
 
-            <button type="submit" class="submit-btn">Guardar Producto</button>
-            <div class="bottom-text">
-                <a href="/productos" class="text-muted">Cancelar y volver</a>
+            {% if producto %}
+                <div class="action-group">
+                    <button type="button" class="cart-btn">🛒 Añadir a la cesta</button>
+                    <button type="button" class="buy-btn">⚡ Comprar ahora</button>
+                </div>
+            {% else %}
+                <button type="submit" class="submit-btn">Guardar Nuevo Producto</button>
+            {% endif %}
+
+            <div class="bottom-text mt-4 text-center">
+                <a href="/productos" class="text-muted text-decoration-none small">← Volver al Inventario</a>
             </div>
         </form>
-
     </div>
 
 </body>

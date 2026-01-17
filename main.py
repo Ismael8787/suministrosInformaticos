@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 
 from models import Proveedor, Producto, Pedido, DetallePedido, Cliente
 import db
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -18,7 +19,9 @@ def registro():
 
 @app.route('/productos')
 def productos():
-    return render_template("productos.html")
+    lista_productos = db.session.query(Producto).all()
+    print(lista_productos)
+    return render_template("productos.html",productos=lista_productos)
 
 @app.route('/registro-producto')
 def registroProducto():
@@ -28,6 +31,13 @@ def registroProducto():
 @app.route('/registro-proveedor')
 def registroProveedor():
     return render_template("registro-proveedor.html")
+
+
+@app.route('/detalle-producto/<int:id>')
+def detalleProducto(id):
+    producto=db.session.query(Producto).filter_by(id=id).first()
+    proveedor_actual = db.session.query(Proveedor).filter_by(id=producto.id_proveedor).first()
+    return render_template('registro-producto.html',producto=producto,proveedor_actual=proveedor_actual)
 
 
 @app.route('/create-cliente', methods=['POST'])
@@ -85,36 +95,48 @@ def createProveedor():
 
 @app.route('/create-producto', methods=['POST'])
 def createProducto():
-    nombre = request.form.get('nombre')
-    archivo = request.files.get('imagen')
-    nombre_imagen = "default.png"
-
-    if archivo and archivo.filename != '':
-        filename = secure_filename(archivo.filename)
-        nombre_imagen = filename
-
-    proveedor = Proveedor(
-        nombre=request.form.get('nombre'),
-        descripcion=request.form.get('descripcion'),
-        precio_compra=request.form.get('email'),
-        precio_venta=request.form.get('telefono'),
-        stock_actual=request.form.get('direccion'),
-        stock_minimo=request.form.get('minimo'),
-        color=request.form.get('color'),
-        referencia=request.form.get('referencia'),
-        ubicacion=request.form.get('ubicacion'),
-        imagen=nombre_imagen,
-        id_proveedor=request.form.get('proveedor_id'),
-    )
-
     try:
-        db.session.add(proveedor)
+        archivo = request.files.get('imagen')
+        nombre_imagen = "default.png"
+
+        if archivo and archivo.filename != '':
+            try:
+                filename = secure_filename(archivo.filename)
+                folder_path = os.path.join(app.root_path, 'static', 'img', 'productos')
+
+                if not os.path.exists(folder_path):
+                    os.makedirs(folder_path)
+
+                ruta_completa = os.path.join(folder_path, filename)
+                archivo.save(ruta_completa)
+                nombre_imagen = filename
+            except Exception as e_img:
+                print(f"Error al guardar la imagen: {e_img}")
+                nombre_imagen = "default.png"
+
+        nuevo_producto = Producto(
+            nombre=request.form.get('nombre'),
+            descripcion=request.form.get('descripcion'),
+            precio_compra=float(request.form.get('precio_compra') or 0),
+            precio_venta=float(request.form.get('precio_venta') or 0),
+            stock_actual=int(request.form.get('stock_actual') or 0),
+            stock_minimo=int(request.form.get('stock_minimo') or 0),
+            color=request.form.get('color'),
+            referencia=request.form.get('referencia'),
+            ubicacion=request.form.get('ubicacion'),
+            imagen=nombre_imagen,
+            id_proveedor=request.form.get('proveedor_id')
+        )
+
+        db.session.add(nuevo_producto)
         db.session.commit()
         return redirect(url_for('productos'))
+
     except Exception as e:
         db.session.rollback()
-        print("ERROR SQLAlchemy:", e)
-        return redirect(url_for('registroProveedor'))
+        print(f"Error general en createProducto: {e}")
+        return "Hubo un error al guardar el producto", 500
+
 
 
 
